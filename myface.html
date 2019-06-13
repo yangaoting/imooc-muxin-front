@@ -44,14 +44,7 @@
 			mui.init();
 			
 			mui.plusReady(function () {
-			   var user = app.getUerGlobalInfo();
-			   var img_myface = document.getElementById("img_myface");
-			   if(user != null){
-				   var faceImage = user.faceImage;
-				   if(app.isNotNull(faceImage)){
-					   img_myface.src = app.imgServerUrl + faceImage;
-				   }
-			   }
+			   refreshFace();
 			   
 			   var imgWidth = document.body.clientWidth;
 			   img_myface.width = imgWidth;
@@ -66,16 +59,58 @@
 			   //绑定选择照片事件
 			   var link_choosePhoto = document.getElementById("link_choosePhoto");
 			   link_choosePhoto.addEventListener("tap",function(){
-				   mui.openWindow("plugin/v3.1.6/myface-uploader.html","myface-uploader.html");
+				   mui.openWindow({
+					   url:"plugin/v3.1.6/myface-uploader.html",
+					   id:"myface-uploader.html",
+					   createNew:true});
 			   });
 			   
 			   //绑定下载照片事件
 			   var link_savePhoto = document.getElementById("link_savePhoto");
 			   link_savePhoto.addEventListener("tap",function(){
-			   		alert("save");   
+			   		plus.nativeUI.showWaiting("下载中");
+					
+					var user = app.getUerGlobalInfo();
+					var faceImage = user.faceImageBig;
+					
+					var dtask = plus.downloader.createDownload(
+						app.imgServerUrl + faceImage,
+						{},
+						function(downloadFile,status){
+							plus.nativeUI.closeWaiting();
+							
+							if(status == 200){
+								var tempFile = downloadFile.filename;
+								
+								plus.gallery.save(tempFile,function(){
+									app.showToast("下载成功","success");
+								});
+							}else{
+								console.log("下载错误");
+								app.showToast("下载错误","error");
+							}
+						})
+						
+						dtask.start();
+			   });
+			   
+			   //添加自定义事件
+			   window.addEventListener("refresh",function(){
+					refreshFace();
 			   });
 			   
 			});
+			
+			function refreshFace() {
+				var user = app.getUerGlobalInfo();
+				var img_myface = document.getElementById("img_myface");
+				if(user != null){
+					   var faceImageBig = user.faceImageBig;
+					   if(app.isNotNull(faceImageBig)){
+						   img_myface.src = app.imgServerUrl + faceImageBig;
+					   }
+				}
+			}
 		</script>
 	</body>
 

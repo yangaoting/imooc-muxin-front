@@ -9,11 +9,120 @@
 	</head>
 
 	<body>
-		<h1>聊天记录</h1>
+		<div class="mui-content">
+			<ul class="mui-table-view" id="ul_friend_request_list" style="margin-bottom: 10px;">
+				
+			</ul>
+		</div>
 		
 		<script src="js/mui.js"></script>
+		<script src="js/app.js"></script>
 		<script type="text/javascript">
-			mui.init()
+			mui.init();
+			
+			mui.plusReady(function () {
+				//加载好友请求记录
+				var thisWebview  = plus.webview.currentWebview();
+				thisWebview.addEventListener("show",function(){
+					loadingFriendRequests();
+				});
+			});
+			
+			function loadingFriendRequests(){
+				
+				//获取用户全局对象
+				var user = app.getUerGlobalInfo();
+				
+				mui.ajax(app.serverUrl + '/u/queryFriendRequests',{
+					data:{
+						userId:user.id
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:10000,//超时时间设置为10秒；
+					success:function(data){
+						console.info(JSON.stringify(data.data));
+						
+						if(data.status == 200){
+							var friendRequestList = data.data;
+							
+							var ul_friend_request_list = document.getElementById("ul_friend_request_list");
+							if(friendRequestList != null && friendRequestList.length > 0){
+								var requestHtml = "";
+								for(var i = 0 ; i < friendRequestList.length; i++){
+									requestHtml += renderFriendRequests(friendRequestList[i].sender);
+								}
+								ul_friend_request_list.innerHTML = requestHtml;
+								
+								mui('.btnOper').on('tap','.ignoreRequest',function(){
+									var sendUserId = this.getAttribute("friendId");
+									operateFriendRequest(user.id,sendUserId,0);
+								}) ;
+								
+								mui('.btnOper').on('tap','.passRequest',function(){
+									var sendUserId = this.getAttribute("friendId");
+									operateFriendRequest(user.id,sendUserId,1);
+								}) ;
+							}else{
+								ul_friend_request_list.innerHTML = "";
+							}
+						}else{
+							app.showToast(data.msg,"error");
+						}
+					},
+					error:function(xhr,type,errorThrown){
+						
+					}
+				});
+			}
+			
+			function operateFriendRequest(acceptUserId,sendUserId,operType){
+				console.info(sendUserId);
+				mui.ajax(app.serverUrl + '/u/operFriendRequest',{
+					data:{
+						acceptUserId:acceptUserId,
+						sendUserId:sendUserId,
+						operType:operType
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:10000,//超时时间设置为10秒；
+					success:function(data){
+						//TODO 通讯录
+						
+						//重新加载好友请求
+						loadingFriendRequests();
+					},
+					error:function(xhr,type,errorThrown){
+						
+					}
+				});
+			}
+			
+			function renderFriendRequests(friend){
+				var html = "";
+				var faceImage = "image/bg.png";
+				if(app.isNotNull(friend.faceImage)){
+					faceImage =app.imgServerUrl + friend.faceImage;
+				}
+				
+				html = '<li class="btnOper mui-table-view-cell mui-media">' +
+				
+					        '<a href="javascript:;">' +
+					            '<img class="mui-media-object mui-pull-left" src="' + faceImage + '">' +
+					            '<span id="span_nickname" class="mui-pull-right">' +
+					            	'<button friendId="' + friend.id + '" type="button" class="ignoreRequest mui-btn mui-btn-grey" style="padding: 4px 10px;margin-right:5px;">忽略</button>' +
+					            	'<button friendId="' + friend.id + '" type="button" class="passRequest mui-btn mui-btn-danger" style="padding: 4px 10px;">通过</button>' +
+					            '</span>' +
+					            '<div class="mui-media-body">' +
+					               '<label>' + friend.nickname + '</label>' +
+					                '<p class="mui-ellipsis">请求添加你为朋友</p>' +
+					            '</div>' +
+					        '</a>' +
+						'</li>';
+				
+				return html;
+			}
 		</script>
 	</body>
 

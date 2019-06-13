@@ -4,7 +4,7 @@ window.app = {
 	serverUrl:'http://192.168.1.3:8080',
 	
 	/** 图片服务器地址*/
-	imgServerUrl:'',
+	imgServerUrl:'http://47.106.232.229:88/imooc/',
 	
 	/**
 	 * 判断字符串是否为空
@@ -39,5 +39,12 @@ window.app = {
 	getUerGlobalInfo:function(){
 		var userInfoStr = plus.storage.getItem("userInfo");
 		return JSON.parse(userInfoStr);
+	},
+	
+	/**
+	 * 用户推出，清空用户缓存
+	 */
+	userLogout:function(){
+		plus.storage.removeItem("userInfo");
 	}
 };
