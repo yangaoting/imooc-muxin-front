@@ -22,7 +22,7 @@
 <body>
 	<!-- 标题-->
 	<header class="mui-bar mui-bar-nav title">
-		<h1 class="mui-title title-color"><b>墨信</b></h1>
+		<h1 class="mui-title title-color" id="muxin_title"><b>墨信</b></h1>
 	</header>
 	
 	<!-- 底部选项卡-->
@@ -77,6 +77,9 @@
 				return false;
 			}
 			
+			//监听网络状态
+			networkChangeSwitch();
+			
 			var indexWebview = plus.webview.currentWebview();
 			
 			//向当前主页追加子页
@@ -104,7 +107,34 @@
 				}
 			});
 			
+			//延时加载数据
+			setTimeout("initData()",1000);
 		});
+		
+		function networkChangeSwitch(){
+			document.addEventListener('netchange',function(){
+				//网络状态
+				var networkStatus = plus.networkinfo.getCurrentType();
+				if(networkStatus != plus.networkinfo.CONNECTION_UNKNOW 
+						&& networkStatus != plus.networkinfo.CONNECTION_NONE){
+					//重新打开网络连接
+					var muxin_title =  document.getElementById('muxin_title');
+					muxin_title.innerHTML = '<b>幕信</b>';
+				}else{
+					var muxin_title =  document.getElementById('muxin_title');
+					muxin_title.innerHTML = '<b>幕信(未连接)</b>';
+				}
+			});
+		}
+		
+		//预加载
+		function initData(){
+			var imooc_chatlist = plus.webview.getWebviewById("imooc-chatlist.html");
+			mui.fire(imooc_chatlist,"refresh");
+			
+			var imooc_me = plus.webview.getWebviewById("imooc-me.html");
+			mui.fire(imooc_me,'refresh');
+		}
 	</script>
 </body>
 </html>

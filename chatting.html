@@ -1,0 +1,273 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.css" rel="stylesheet" />
+		<link href="css/header.css" rel="stylesheet"/>
+		<link href="css/chat.css" rel="stylesheet"/>
+		<style>
+			html,
+			body {
+				height: 100%;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+			}
+		</style>
+	</head>
+
+	<body contextmenu="return false;">
+		
+		<header class="mui-bar mui-bar-nav title" style="position: fixed;">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<h1 class="mui-title title-color"><b id="chatting-nickname">慕 信</b></h1>
+		</header>
+		
+		<div id="msg-outter" class="mui-content">
+			<div id='msg'>
+				<div class="friend_lists">
+					<div class="header_img">
+						<img src="image/bg.png" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper right">
+						<p class="msg-left-white">晚上过来吃饭？</p>
+					</div>
+				</div>
+
+				<div class="me_lists">
+					<div class="header_img">
+						<img src="image/bizhi.jpg" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper left">
+						<p class="msg-right-green">好的，没问题！时间地点？</p>
+					</div>
+				</div>
+				
+				<div class="friend_lists">
+					<div class="header_img">
+						<img src="image/bg.png" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper right">
+						<p class="msg-left-white">晚上过来吃饭？</p>
+					</div>
+				</div>
+				<div class="me_lists">
+					<div class="header_img">
+						<img src="image/bizhi.jpg" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper left">
+						<p class="msg-right-green">好的，没问题！时间地点？</p>
+					</div>
+				</div>
+				
+				<div class="friend_lists">
+					<div class="header_img">
+						<img src="image/bg.png" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper right">
+						<p class="msg-left-white">晚上过来吃饭？</p>
+					</div>
+				</div>
+				<div class="me_lists">
+					<div class="header_img">
+						<img src="image/bizhi.jpg" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper left">
+						<p class="msg-right-green">好的，没问题！时间地点？</p>
+					</div>
+				</div>
+				
+				<div class="friend_lists">
+					<div class="header_img">
+						<img src="image/bg.png" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper right">
+						<p class="msg-left-white">晚上过来吃饭？</p>
+					</div>
+				</div>
+				<div class="me_lists">
+					<div class="header_img">
+						<img src="image/bizhi.jpg" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper left">
+						<p class="msg-right-green">好的，没问题！时间地点？</p>
+					</div>
+				</div>
+				
+				<div class="friend_lists">
+					<div class="header_img">
+						<img src="image/bg.png" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper right">
+						<p class="msg-left-white">晚上过来吃饭？</p>
+					</div>
+				</div>
+				<div class="me_lists">
+					<div class="header_img">
+						<img src="image/bizhi.jpg" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper left">
+						<p class="msg-right-green">好的，没问题！时间地点？</p>
+					</div>
+				</div>
+				
+				<div class="friend_lists">
+					<div class="header_img">
+						<img src="image/bg.png" width="40px" height="40px" />
+					</div>
+					<div class="msg-wrapper right">
+						<p class="msg-left-white">晚上过来吃饭？</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<footer>
+			<div class="footer-center">
+				<textarea id='msg-text' type="text" class='input-text'></textarea>
+			</div>
+			<label for="" class="footer-right">
+				<button type="button" class="mui-btn mui-btn-gray" id="send">发送</button>
+			</label>
+		</footer>
+		
+		<script src="js/mui.js"></script>
+		<script src="js/app.js"></script>
+		<script type="text/javascript">
+			//创建命名空间,外部无法访问
+			(function($,doc){
+				
+				var friendUserId ;
+				var friendNickname ;
+				var friendFaceImage ;
+				
+				mui.plusReady(function () {
+					//获取个人信息
+				    var me = app.getUerGlobalInfo();
+					//设置软键盘样式
+					var chattingWebview = plus.webview.currentWebview();
+					chattingWebview.setStyle({
+						softinputMode:"adjustResize"
+					});
+					//获取传入的参数值
+					friendUserId = chattingWebview.friendUserId;
+					friendNickname = chattingWebview.friendNickname;
+					friendFaceImage = chattingWebview.friendFaceImage;
+					
+					//设置标题
+					doc.getElementById('chatting-nickname').innerHTML = friendNickname;
+				
+					//滚动到消息的最后一条
+					var areaMsgList = doc.getElementById('msg');
+					areaMsgList.scrollTop = areaMsgList.scrollHeight + areaMsgList.offsetHeight;
+				
+					//监听输入
+					var msg_text = doc.getElementById('msg-text');
+					var send = doc.getElementById('send');
+					msg_text.addEventListener("input",function(){
+						if(app.isNotNull(msg_text.value.trim())){
+							send.setAttribute("class","mui-btn-green");
+						}else{
+							send.setAttribute("class","mui-btn-gray");
+						}
+					});
+					
+					send.addEventListener("tap",function(){
+						//网络状态
+						var networkStatus = plus.networkinfo.getCurrentType();
+						if(networkStatus == plus.networkinfo.CONNECTION_UNKNOW 
+								|| networkStatus == plus.networkinfo.CONNECTION_NONE){
+							app.showToast("未连接网络","error");
+							return;
+						}
+						//输入为空,禁止提交
+						if(!app.isNotNull(msg_text.value.trim())){
+							return;
+						}
+						//发送消息
+						var myFaceImage = me.faceImage;
+						if(app.isNotNull(myFaceImage)){
+							myFaceImage = app.imgServerUrl + myFaceImage;
+						}else{
+							myFaceImage = 'image/bg.png';
+						}
+						sendMsg(myFaceImage,msg_text.value.trim());
+						
+						//清空消息输入框
+						msg_text.value = '';
+						//按钮样式修改
+						send.setAttribute('class','mui-btn-gray');
+						//模拟接收消息
+						receiveMsg("模拟接收~~~~");
+						//调整聊天窗口
+						resizeScreen();
+					});
+					
+					//监听*-resize
+					window.addEventListener('resize',function(){
+						resizeScreen();
+						doc.getElementById('msg-outter').style.paddingBottom = '50px';
+					});
+				});
+				
+				//调整聊天窗口
+				function resizeScreen(){
+					//滚动到消息的最后一条
+					var areaMsgList = doc.getElementById('msg');
+					areaMsgList.scrollTop = areaMsgList.scrollHeight + areaMsgList.offsetHeight;
+				}
+				
+				//发送消息
+				function sendMsg(faceImage,msg){
+					var msgHtml ='<div class="me_lists">' +
+									'<div class="header_img">' +
+										'<img src="'+faceImage+'" width="40px" height="40px" />' +
+									'</div>' +
+									'<div class="msg-wrapper left">' +
+										'<p class="msg-right-green">'+msg+'</p>' +
+									'</div>' +
+								'</div>';
+				   var msg_list = doc.getElementById('msg');
+				   msg_list.insertAdjacentHTML('beforeend',msgHtml);
+				   
+				   playSendMsgSound();
+				}
+				
+				//接收消息
+				function receiveMsg(msg){
+					var msgHtml ='<div class="friend_lists">' +
+									'<div class="header_img">' +
+										'<img src="'+friendFaceImage+'" width="40px" height="40px" />' +
+									'</div>' +
+									'<div class="msg-wrapper right">' +
+										'<p class="msg-left-white">'+msg+'</p>' +
+									'</div>' +
+								'</div>';
+				   var msg_list = doc.getElementById('msg');
+				   msg_list.insertAdjacentHTML('beforeend',msgHtml);
+				   
+				   playReceiveMsgSound();
+				}
+				
+				//播放发送消息的铃声
+				function playSendMsgSound(){
+					var audioPlayer = plus.audio.createPlayer("/mp3/send.mp3");
+					audioPlayer.play();
+				}
+				
+				//播放接收消息的铃声
+				function playReceiveMsgSound(){
+					var audioPlayer = plus.audio.createPlayer("/mp3/msn.mp3");
+					audioPlayer.play();
+				}
+				
+			}(mui,document));
+		</script>
+	</body>
+
+</html>

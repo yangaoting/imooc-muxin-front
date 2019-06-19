@@ -26,6 +26,10 @@
 				thisWebview.addEventListener("show",function(){
 					loadingFriendRequests();
 				});
+				
+				window.addEventListener("refresh",function(){
+					loadingFriendRequests();
+				});
 			});
 			
 			function loadingFriendRequests(){
@@ -89,7 +93,9 @@
 					timeout:10000,//超时时间设置为10秒；
 					success:function(data){
 						//TODO 通讯录
-						
+						if(data.data != null){
+							app.setContactList(data.data);
+						}
 						//重新加载好友请求
 						loadingFriendRequests();
 					},

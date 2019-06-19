@@ -26,7 +26,7 @@
 						<span style="margin-left: 10px;">添加好友</span>
 					</p>
 				</li>
-				<li class="mui-table-view-cell mui-media">
+				<li id="li_scanme" class="mui-table-view-cell mui-media">
 					<img class="mui-media-object mui-pull-left" src="image/scanscan.png" style="max-height: 24px;max-width: 24px;">
 					<p class="mui-ellipsis" style="line-height: 24px;color: black;font-size: 16px;">
 						<span style="margin-left: 10px;">扫一扫</span>
@@ -42,6 +42,12 @@
 			    var li_add_friend = document.getElementById("li_add_friend");
 				li_add_friend.addEventListener("tap",function(){
 					mui.openWindow("searchFriends.html","searchFriends.html");
+				});
+				
+				
+				var li_scanme = document.getElementById("li_scanme");
+				li_scanme.addEventListener("tap",function(){
+					mui.openWindow("scanme.html","scanme.html");
 				});
 			})
 		</script>
