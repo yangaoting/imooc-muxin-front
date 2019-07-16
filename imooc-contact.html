@@ -99,12 +99,12 @@
 			
 			//计算首字母位置
 			function getOrderOfEnWords(enChar){
-				for(var i = 0 ; enWords.length ; i++){
-					if(enWords[i] == enChar){
+				for(var i = 0 ;i < enWords.length; i++){
+					if(enWords[i] == new String(enChar)){
 						return i;
 					}
 				}
-				
+				console.info(enWords.length);
 				return enWords.length - 1;
 			}
 			
@@ -132,10 +132,13 @@
 					var friend = friendList[i];
 					//转换拼音
 					var pinyin = words.convertPinyin(friend.myFriend.nickname);
+					console.info(pinyin);
 					//截取首字母
 					var firstChar = pinyin.substr(0,1).toUpperCase();
+					console.info(firstChar);
 					//计算位置
 					var order = getOrderOfEnWords(firstChar);
+					console.info(order);
 					//塞入联系人列表模型数组
 					contactArray[order].push(friend.myFriend);
 				}
@@ -188,7 +191,6 @@
 			//访问后台获取好友列表
 			function fetchContractList(){
 				var user = app.getUerGlobalInfo();
-				
 				mui.ajax(app.serverUrl + '/u/myFriends',{
 					data:{
 						userId:user.id

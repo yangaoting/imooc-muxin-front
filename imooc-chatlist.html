@@ -6,6 +6,15 @@
 		<title></title>
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
 		<link href="css/mui.css" rel="stylesheet" />
+		<style type="text/css">
+			.lement {
+				background-color: #dd524d;
+				color: white;
+				position: absolute;
+				left: 25px;
+				top: 0px;
+			}
+		</style>
 	</head>
 
 	<body>
@@ -13,7 +22,59 @@
 			<ul class="mui-table-view" id="ul_friend_request_list" style="margin-bottom: 10px;">
 				
 			</ul>
+			<ul id="ul_chatSnapshot" class="mui-table-view">
+				<!-- <li class="mui-table-view-cell mui-media">
+					<div class="mui-slider-right mui-disabled">
+						<a class="mui-btn mui-btn-red">删除</a>
+					</div>
+					<div class="mui-slider-handle mui-media-body">
+						<img class="mui-media-object mui-pull-left" src="image/face-default-cat.png"/>
+							<span class="lement mui-badge mui-btn-red" style="background-color: #dd524d;color: white;">12</span>
+							甲
+						<p class="mui-ellipsis">这里是聊天内容...</p>
+					</div>
+				</li> -->
+				<!-- <li class="mui-table-view-cell mui-media">
+					<div class="mui-slider-right mui-disabled">
+						<a class="mui-btn mui-btn-red">删除</a>
+					</div>
+					<div class="mui-slider-handle mui-media-body">
+						<img class="mui-media-object mui-pull-left" src="image/face-default-cat.png"/>
+							<span class="red-point">慕课网</span>
+						<p class="mui-ellipsis">这里是聊天内容...</p>
+					</div>
+				</li>
+			   <li class="mui-table-view-cell mui-media">
+					<div class="mui-media-body">
+						<img class="mui-media-object mui-pull-left" src="image/face-default-cat.png"/>
+							甲
+						<p class="mui-ellipsis">这里是聊天内容...</p>
+					</div>
+				</li>
+				<li class="mui-table-view-cell mui-media">
+					<div class="mui-media-body">
+						<img class="mui-media-object mui-pull-left" src="image/face-default-cat.png"/>
+							乙
+						<p class="mui-ellipsis">这里是聊天内容...</p>
+					</div>
+				</li>
+				<li class="mui-table-view-cell mui-media">
+					<div class="mui-media-body">
+						<img class="mui-media-object mui-pull-left" src="image/face-default-cat.png"/>
+							丙
+						<p class="mui-ellipsis">这里是聊天内容...</p>
+					</div>
+				</li>
+				<li class="mui-table-view-cell mui-media">
+					<div class="mui-media-body">
+						<img class="mui-media-object mui-pull-left" src="image/face-default-cat.png"/>
+							丁
+						<p class="mui-ellipsis">这里是聊天内容...</p>
+					</div>
+				</li> -->
+			</ul>
 		</div>
+		
 		
 		<script src="js/mui.js"></script>
 		<script src="js/app.js"></script>
@@ -27,10 +88,253 @@
 					loadingFriendRequests();
 				});
 				
+				//自定义事件/刷新
 				window.addEventListener("refresh",function(){
 					loadingFriendRequests();
+					
+					CHAT.init();
 				});
+				//初始化WebSocket
+				CHAT.init();
+				
+				//绑定事件
+				mui('#ul_chatSnapshot').on('tap','.chat-with-friend',function(){
+					var friendUserId = this.getAttribute("friendUserId");
+					var friendNickname = this.getAttribute("friendNickname");
+					var friendFaceImage = this.getAttribute("friendFaceImage");
+					
+					console.info(friendUserId + ',' + friendNickname + ',' + friendFaceImage)
+					mui.openWindow({
+						url:'chatting.html',
+						id:'chatting-' + friendUserId,
+						extras:{
+							friendUserId:friendUserId,
+							friendNickname:friendNickname,
+							friendFaceImage:friendFaceImage
+						}
+					});
+					
+					var me = app.getUerGlobalInfo();
+					//标记未读为已读
+					app.readUserChatSnapshot(me.id,friendUserId);
+					//渲染快照
+					loadingChatSnapshot();
+				}) ;
+				
+				//绑定事件,左滑删除快照
+				mui('#ul_chatSnapshot').on('tap','#link_delChatRecord',function(e){
+				  var me = this;
+				  var friendId = me.getAttribute("friendUserId");
+				  var user = app.getUerGlobalInfo();
+				  //删除聊天记录
+				  app.deleteUserChatHistory(user.id,friendId);
+				  //删除快照
+				  app.deleteUserChatSnapshot(user.id,friendId);
+				  //删除dom节点
+				  var li = me.parentNode.parentNode;
+				  var ul_chatSnapshot = document.getElementById("ul_chatSnapshot");
+				  ul_chatSnapshot.removeChild(li);
+				}) 
+				
 			});
+			
+			//构建聊天业务CHAT
+			window.CHAT = {
+				socket:null,
+				init:function(){
+					if(window.WebSocket){
+						//如果已有socket实例,则不再重新创建实例
+						if(CHAT.socket != null && CHAT.socket != undefined
+							&& CHAT.socket.readyState == WebSocket.OPEN){
+							
+							return false;
+						}
+						
+						CHAT.socket = new WebSocket(app.nettyServerUrl);
+						CHAT.socket.onopen = CHAT.wsopen;
+						CHAT.socket.onmessage = CHAT.wsmessage;
+						CHAT.socket.onerror = CHAT.wserror;
+						CHAT.socket.onclose = CHAT.wscloss;
+					}else{
+						alert("系统版本过旧，请先升级系统");
+					}
+				},
+				chat: function(msg){
+					//socket实例不存在,重新创建实例,实现重连
+					if(CHAT.socket != null && CHAT.socket != undefined
+						&& CHAT.socket.readyState == WebSocket.OPEN){
+						//发送消息
+						CHAT.socket.send(msg);
+					}else{
+						CHAT.init();
+						setTimeout("CHAT.rechat('" + msg + "')",1000);
+						
+					}
+					//渲染快照
+					loadingChatSnapshot();
+				},
+				rechat:function(msg){
+					console.info("消息重新发送");
+					CHAT.socket.send(msg);
+				},
+				wsopen:function(){
+					console.log("建立连接成功");
+					//当前用户
+					var me = app.getUerGlobalInfo();
+					//构建ChatMsg
+					var chatMsg = new app.ChatMsg(me.id,null,null,null);
+					//构dataContent
+					var dataContent = new app.DataContent(app.CONNECT,chatMsg,null);
+					//创建连接
+					CHAT.chat(JSON.stringify(dataContent));
+					//拉取未读消息
+					fetchUnReadMsg();
+					//发送心跳
+					setInterval("CHAT.keeplive()",60000);
+				},
+				wserror:function(){
+					console.log("发生错误");
+				},
+				wsmessage:function(e){
+					console.log("接收到消息" + e.data);
+					
+					var dataContent = JSON.parse(e.data);
+					if(dataContent.action === app.PULL_FRIEND){
+						fetchContractList();
+						return false;
+					}
+					var chatMsg = dataContent.chatMsg;
+					var msg = chatMsg.msg;
+					var friendUserId = chatMsg.sendId;
+					var myId = chatMsg.receiverId;
+					//调用接收消息的方法 
+					var chatWebview = plus.webview.getWebviewById('chatting-' + friendUserId);
+					var isRead = false;
+					if(chatWebview != null){
+						chatWebview.evalJS("receiveMsg('"+msg+"')");
+						chatWebview.evalJS("resizeScreen()");
+						isRead = true;
+					}
+					
+					//消息签收
+					var dataContentSign = new app.DataContent(app.SIGNED,null,chatMsg.msgId);
+					CHAT.chat(JSON.stringify(dataContentSign));
+					
+					//保存聊天记录
+					app.saveUserChatHistory(myId,friendUserId,msg,2);
+					app.saveUserChatSnapshot(myId,friendUserId,msg,isRead);
+					//渲染聊天快照
+					loadingChatSnapshot();
+				},
+				wscloss:function(){
+					console.log("连接关闭");
+				},
+				signMsg: function(unSignedIds){
+					console.info(unSignedIds);
+					var dataContent = new app.DataContent(app.SIGNED,null,unSignedIds);
+					
+					CHAT.chat(JSON.stringify(dataContent));
+				},
+				keeplive:function(){
+					var dataContent = new app.DataContent(app.KEEPALIVE,null,null);
+					CHAT.chat(JSON.stringify(dataContent));
+					
+					fetchUnReadMsg();
+					fetchContractList();
+				}
+			};
+			//拉取未读消息
+			function fetchUnReadMsg(){
+				var user = app.getUerGlobalInfo();
+				var msgIds = [];
+				mui.ajax(app.serverUrl +'/u/getUnReadMsgList',{
+					data:{
+						acceptUserId:user.id
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:10000,//超时时间设置为10秒；
+					success:function(data){
+						if(data.status == 200){
+							console.log(JSON.stringify(data.data));
+							var unReadMsgList = data.data;
+							for(var i = 0 ; i < unReadMsgList.length;i++){
+								var msgObj = unReadMsgList[i];
+								console.log(msgObj.acceptUserId + msgObj.sendUserId + msgObj.msg + msgObj.id);
+								//1.保存聊天记录
+								app.saveUserChatHistory(msgObj.acceptUserId,msgObj.sendUserId,msgObj.msg,2);
+								//2.保存聊天快照
+								app.saveUserChatSnapshot(msgObj.acceptUserId,msgObj.sendUserId,msgObj.msg,false);
+								//3.批量签收
+								msgIds.push(msgObj.id);
+							}
+							//签收
+							CHAT.signMsg(msgIds.join(','));	
+							//刷新快照
+							loadingChatSnapshot();
+						}
+					},
+					error:function(xhr,type,errorThrown){
+						
+					}
+				});
+			}
+			
+			//聊天快照
+			function loadingChatSnapshot(){
+				var user = app.getUerGlobalInfo();
+				var chatSnapshotList = app.getUserChatSnapshot(user.id);
+				
+				var chatItemHtml = "";
+				var ul_chatSnapshot = document.getElementById("ul_chatSnapshot");
+				ul_chatSnapshot.innerHTML = '';
+				for(var i = 0 ; i < chatSnapshotList.length ; i ++){
+					var chatItem = chatSnapshotList[i];
+					
+					var friendId = chatItem.friendId; 
+					var friend = app.getFriendFromContactList(friendId);
+					var friendFaceImg = app.isNotNull(friend.faceImage) ? 
+							app.imgServerUrl + friend.faceImage : 'image/bg.png';
+					
+					chatItemHtml = '<li friendUserId="'+friend.id+'" friendNickname="'+friend.nickname+'" friendFaceImage="'+ friendFaceImg+'"class="chat-with-friend mui-table-view-cell mui-media">'+
+										'<div class="mui-slider-right mui-disabled">'+
+											'<a id="link_delChatRecord" friendUserId="'+friend.id+'" class="mui-btn mui-btn-red">删除</a>'+
+										'</div>'+
+										'<div class="mui-slider-handle mui-media-body">'+
+											'<img class="mui-media-object mui-pull-left" src="'+friendFaceImg+'"/>';
+					if(chatItem.unReadCount > 0){
+								chatItemHtml += '<span class="lement mui-badge mui-btn-red" style="background-color: #dd524d;color: white;">'+chatItem.unReadCount+'</span>'
+					}
+								chatItemHtml +=	 friend.nickname + 
+											'<p class="mui-ellipsis">'+chatItem.msg+'</p>'+
+										'</div>'+
+									'</li>';
+					ul_chatSnapshot.insertAdjacentHTML('beforeend',chatItemHtml);
+				}
+				
+			}
+			//访问后台获取好友列表
+			function fetchContractList(){
+				var user = app.getUerGlobalInfo();
+				mui.ajax(app.serverUrl + '/u/myFriends',{
+					data:{
+						userId:user.id
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:10000,//超时时间设置为10秒；
+					success:function(data){
+						if(data.status == 200){
+							console.log(JSON.stringify(data.data));
+							//缓存联系人列表
+							app.setContactList(data.data);
+						}
+					},
+					error:function(xhr,type,errorThrown){
+						
+					}
+				});
+			}
 			
 			function loadingFriendRequests(){
 				
